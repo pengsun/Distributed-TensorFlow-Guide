@@ -1,12 +1,14 @@
 import tensorflow as tf
 
+
 dtype = tf.float32
 shape = [3]
-n_thread = 8
-batch_size = 4
+n_thread = 4
+batch_size = 6
 max_iter = 1000
 log_dir = 'log_my_q/'
 
+# create graph
 queue = tf.FIFOQueue(capacity=1, dtypes=[dtype], shapes=[shape],
                      shared_name='replay_buffer')
 
@@ -20,6 +22,7 @@ tf.train.add_queue_runner(tf.train.QueueRunner(queue, enq_ops))
 dequeued = queue.dequeue_many(batch_size, name='dequeued')
 #dequeued = queue.dequeue(name='dequeued')
 
+# run the session
 with tf.train.MonitoredTrainingSession() as sess:
   summary_writer = tf.summary.FileWriterCache.get(log_dir)
   for j in range(max_iter):

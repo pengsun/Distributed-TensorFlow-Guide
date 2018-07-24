@@ -1,0 +1,4 @@
+CUDA_VISIBLE_DEVICES= python my_q_dist.py --num_actors=2 --job_name=learner --task=0
+
+CUDA_VISIBLE_DEVICES= python my_q_dist.py --num_actors=2 --job_name=actor --task=0
+CUDA_VISIBLE_DEVICES= python my_q_dist.py --num_actors=2 --job_name=actor --task=1
