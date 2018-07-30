@@ -1,3 +1,4 @@
+""" single learner multiple actors """
 import os
 
 import tensorflow as tf
@@ -13,11 +14,10 @@ flags.DEFINE_enum('job_name', 'learner', ['learner', 'actor'],
                   'Job name. Ignored when task is set to -1.')
 
 dtype = tf.float32
-shape = [3]
-n_thread = 4
+shape = [3, 2]
 batch_size = 6
 max_iter = 1000*1000
-log_dir = 'log_my_q_dist/'
+log_dir = 'log_slma/'
 shared_job_device = '/job:learner/task:0'
 local_job_device = '/job:{}/task:{}'.format(FLAGS.job_name, FLAGS.task)
 is_actor_fn = lambda i: FLAGS.job_name == 'actor' and i == FLAGS.task
@@ -28,13 +28,17 @@ cluster = tf.train.ClusterSpec({
 })
 
 
+def build_net(x_input):
+  y = tf.layers.dense(x_input, units=1)
+  return y
+
+
 def main(_):
   # create the graph
   with tf.device(local_job_device):
     with tf.device(shared_job_device):
       queue = tf.FIFOQueue(capacity=1, dtypes=[dtype], shapes=[shape],
                           shared_name='replay_buffer')
-      global_step = tf.train.get_or_create_global_step()
 
     enq_ops = []
     for i in range(FLAGS.num_actors):
@@ -45,19 +49,27 @@ def main(_):
         with tf.device(shared_job_device):
           enq_ops.append(queue.enqueue(input, name='enq_input_{}'.format(i)))
 
-        # don't use queue runner
-        #tf.train.add_queue_runner(tf.train.QueueRunner(queue, enq_ops))
+    # build the learner
+    if is_learner:
+      # Create global step.
+      g_step = tf.get_variable(
+        'global_step',
+        initializer=tf.zeros_initializer(),
+        shape=[],
+        dtype=tf.int64,
+        trainable=False,
+        collections=[tf.GraphKeys.GLOBAL_STEP, tf.GraphKeys.GLOBAL_VARIABLES])
 
-
-    with tf.device(shared_job_device):
       dequeued = queue.dequeue_many(batch_size, name='dequeued')
-      #dequeued = queue.dequeue(name='dequeued')
+
+      y = build_net(dequeued)
+      loss = tf.reduce_mean(y)
+      train_op = tf.train.AdamOptimizer(learning_rate=0.00001).minimize(
+        loss=loss,
+        global_step=g_step
+      )
 
   # run the session
-  cluster = tf.train.ClusterSpec({
-    'actor': ['localhost:%d' % (8001 + i) for i in range(FLAGS.num_actors)],
-    'learner': ['localhost:8000']
-  })
   server = tf.train.Server(cluster,
                            job_name=FLAGS.job_name,
                            task_index=FLAGS.task)
@@ -75,10 +87,10 @@ def main(_):
 
       for j in range(max_iter):
         print('iter {}'.format(j))
-        outputs = sess.run(dequeued)
-        print(outputs.shape)
+        out_loss, _ = sess.run([loss, train_op])
+        print(out_loss)
 
-        summary.value.add(tag='learner/xyz', simple_value=outputs.mean())
+        summary.value.add(tag='learner/xyz', simple_value=out_loss)
         summary_writer.add_summary(summary, j)
     else:
       summary_writer = tf.summary.FileWriterCache.get(os.path.join(

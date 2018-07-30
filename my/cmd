@@ -2,3 +2,39 @@ CUDA_VISIBLE_DEVICES= python my_q_dist.py --num_actors=2 --job_name=learner --ta
 
 CUDA_VISIBLE_DEVICES= python my_q_dist.py --num_actors=2 --job_name=actor --task=0
 CUDA_VISIBLE_DEVICES= python my_q_dist.py --num_actors=2 --job_name=actor --task=1
+
+#####
+# single learner multiple actors
+CUDA_VISIBLE_DEVICES= python my_slma.py --num_actors=2 --job_name=learner --task=0
+
+CUDA_VISIBLE_DEVICES= python my_slma.py --num_actors=2 --job_name=actor --task=0
+CUDA_VISIBLE_DEVICES= python my_slma.py --num_actors=2 --job_name=actor --task=1
+
+#
+CUDA_VISIBLE_DEVICES= python my_slma.py --num_actors=1 --job_name=learner --task=0
+CUDA_VISIBLE_DEVICES= python my_slma.py --num_actors=1 --job_name=actor --task=0
+
+#####
+# multiple learners multiple actors
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=4 --job_name=ps --task=0
+
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=4 --job_name=learner --task=0
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=4 --job_name=learner --task=1
+
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=4 --job_name=actor --task=0
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=4 --job_name=actor --task=1
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=4 --job_name=actor --task=2
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=4 --job_name=actor --task=3
+
+#
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=1 --num_actors=1 --job_name=learner --task=0
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=1 --num_actors=1 --job_name=actor --task=0
+
+#
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=2 --job_name=ps --task=0
+
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=2 --job_name=learner --task=0
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=2 --job_name=learner --task=1
+
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=2 --job_name=actor --task=0
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=2 --job_name=actor --task=1
