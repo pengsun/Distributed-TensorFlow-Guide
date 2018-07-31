@@ -27,6 +27,7 @@ CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=4 --job_na
 CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=2 --num_actors=4 --job_name=actor --task=3
 
 #
+CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=1 --num_actors=1 --job_name=ps --task=0
 CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=1 --num_actors=1 --job_name=learner --task=0
 CUDA_VISIBLE_DEVICES= python my_mlma.py --num_learners=1 --num_actors=1 --job_name=actor --task=0
 

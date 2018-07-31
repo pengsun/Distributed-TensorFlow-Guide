@@ -80,11 +80,11 @@ def main(_):
         y = build_net(dequeued)
         loss = tf.reduce_mean(y)
         opt = tf.train.AdamOptimizer(learning_rate=0.00001)
-        # opt = tf.train.SyncReplicasOptimizer(
-        #   opt,
-        #   replicas_to_aggregate=FLAGS.num_learners,
-        #   total_num_replicas=FLAGS.num_learners
-        # )
+        opt = tf.train.SyncReplicasOptimizer(
+          opt,
+          replicas_to_aggregate=1,
+          total_num_replicas=1
+        )
         train_op = opt.minimize(loss=loss, global_step=g_step)
 
   # run the session
@@ -95,10 +95,16 @@ def main(_):
   #                         device_filters=[shared_job_device, local_job_device])
   config = tf.ConfigProto(allow_soft_placement=True)
   is_chief = is_learner_fn(0)
+  if is_learner_fn(FLAGS.task):  # required!
+    sync_replicas_hook = [opt.make_session_run_hook(is_chief)]
+  else:
+    sync_replicas_hook = None
+
   with tf.train.MonitoredTrainingSession(
           server.target,
           is_chief=is_chief,
           checkpoint_dir=os.path.join(log_dir, 'z'),
+          hooks=sync_replicas_hook,
           config=config) as sess:
     if is_learner_fn(FLAGS.task):
       if is_chief:
